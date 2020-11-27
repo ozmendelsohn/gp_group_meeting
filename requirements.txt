@@ -3,3 +3,10 @@ matplotlib
 ipywidgets
 jupyter_contrib_nbextensions
 nglview
+scikit-learn
+scipy
+ase
+sgdml
+sgdml[ase]
+sgdml[torch]
+ipympl
