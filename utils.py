@@ -126,7 +126,8 @@ def multivariate_plot(multivariate_normal, nb_of_x=40):
         plt.show()
 
     fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(9,5))
-    widgets.interact(update, C=(0, 0.99, .01))
+    c_widget = FloatSlider(min=0.0, max=.99, step=0.01, continuous_update=False)
+    widgets.interact(update, C=c_widget)
     
 def condition_plot(nb_of_x=40):
     def univariate_normal(x, mean, variance):
@@ -363,7 +364,7 @@ def gaussian_process(x, f, noise, posterior_predictive=posterior_predictive, ker
     l_opt, sigma_f_opt = res.x
     # print(l_opt, sigma_f_opt)
     # Compute the prosterior predictive statistics with optimized kernel parameters and plot the results
-    plt.close()
+    plt.close('all')
     mu_s, cov_s = posterior_predictive(X, X_train, Y_train, l=l_opt, sigma_f=sigma_f_opt, sigma_y=noise)
 
     plt.plot(X,f(X),':', label='Ground Truth')
@@ -404,3 +405,25 @@ def gaussian_process_interactive(f, noise, kernal=ConstantKernel(1.0) * RBF(leng
     cid = fig.canvas.mpl_connect('button_press_event', onclick)
     plt.show()
     plt.draw()
+    
+from itertools import product
+class gprArray:
+    def __init__(self, N, kernel, alpha):
+        self.gpr_array = [GaussianProcessRegressor(kernel=kernal, alpha=noise**2) for _ in range(N)]
+        
+    def fit(self, x, y):
+        y_split = [[] for _ in range(y.shape[1])]
+        for i, j in product(range(y.shape[1]), range(y.shape[0])):
+            y_split[i].append(y[j, i])
+        y_split = [np.array(y).reshape([-1,1]) for y in y_split]
+        for i, gp in enumerate(self.gpr_array):
+            gp.fit(x, y_split[i])
+
+    def predict(self, x):
+        y_split = []
+        for gp in self.gpr_array:
+            y_split.append(gp.predict(x))
+        y = np.zeros([x.shape[0], len(self.gpr_array)])
+        for i, j in product(range(y.shape[1]), range(y.shape[0])):
+            y[j, i] = y_split[i][j]
+        return y
