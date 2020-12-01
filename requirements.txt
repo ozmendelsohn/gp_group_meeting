@@ -7,8 +7,8 @@ scikit-learn
 scipy
 ase
 sgdml
-kimpy
 openkim-models
+kimpy
 sgdml[ase]
 sgdml[torch]
 ipympl
