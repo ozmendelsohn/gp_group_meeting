@@ -1,14 +1,14 @@
 numpy
 matplotlib
 ipywidgets
+sgdml
+sgdml[ase]
+sgdml[torch]
 jupyter_contrib_nbextensions
 nglview
 scikit-learn
 scipy
 ase
-sgdml
 openkim-models
 kimpy
-sgdml[ase]
-sgdml[torch]
 ipympl
