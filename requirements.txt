@@ -6,5 +6,4 @@ jupyter_contrib_nbextensions
 nglview
 scikit-learn
 scipy
-kimpy
 ipympl
