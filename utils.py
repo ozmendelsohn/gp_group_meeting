@@ -13,23 +13,23 @@ import sys
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
-from matplotlib import cm # Colormaps
+from matplotlib import cm  # Colormaps
 import matplotlib.gridspec as gridspec
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import ipywidgets as widgets
 from ipywidgets import FloatSlider
 import matplotlib.pyplot as plt
 import numpy as np
-from utils import *
+
 
 def univariate_plot(univariate_normal):
-    def update(mu = 0.0, sigma=1):
+    def update(mu=0.0, sigma=1):
         """Remove old lines from plot and plot new one"""
         [l.remove() for l in ax.lines]
 
         x = np.linspace(-5, 5, num=150)
-        plt.plot(x, univariate_normal(x, mu, sigma), 
-        label='$\mathcal{N}(' + str(mu) + ', ' + str(sigma) + ')$', color='C0')
+        plt.plot(x, univariate_normal(x, mu, sigma),
+                 label='$\mathcal{N}(' + str(mu) + ', ' + str(sigma) + ')$', color='C0')
 
         plt.xlabel('$x$', fontsize=13)
         plt.ylabel('density: $p(x)$', fontsize=13)
@@ -38,22 +38,24 @@ def univariate_plot(univariate_normal):
         plt.xlim([-5, 5])
         plt.legend(loc=1)
         fig.subplots_adjust(bottom=0.15)
+
     fig, ax = plt.subplots(figsize=(8, 5))
     ax.grid(True)
     widgets.interact(update, mu=(-3, 3, .1), sigma=(0.1, 2, .01))
-    
+
+
 def generate_surface(mean, covariance, d, nb_of_x=40):
     """Helper function to generate density surface."""
-    nb_of_x = nb_of_x # grid size
+    nb_of_x = nb_of_x  # grid size
     x1s = np.linspace(-5, 5, num=nb_of_x)
     x2s = np.linspace(-5, 5, num=nb_of_x)
-    x1, x2 = np.meshgrid(x1s, x2s) # Generate grid
+    x1, x2 = np.meshgrid(x1s, x2s)  # Generate grid
     pdf = np.zeros((nb_of_x, nb_of_x))
     # Fill the cost matrix for each combination of weights
     for i in range(nb_of_x):
         for j in range(nb_of_x):
-            pdf[i,j] = multivariate_normal(
-                np.matrix([[x1[i,j]], [x2[i,j]]]), 
+            pdf[i, j] = multivariate_normal(
+                np.matrix([[x1[i, j]], [x2[i, j]]]),
                 d, mean, covariance)
     return x1, x2, pdf  # x1, x2, pdf(x1,x2)
 
@@ -61,32 +63,32 @@ def generate_surface(mean, covariance, d, nb_of_x=40):
 def multivariate_plot(multivariate_normal, nb_of_x=40):
     def generate_surface(mean, covariance, d, nb_of_x=40):
         """Helper function to generate density surface."""
-        nb_of_x = nb_of_x # grid size
+        nb_of_x = nb_of_x  # grid size
         x1s = np.linspace(-5, 5, num=nb_of_x)
         x2s = np.linspace(-5, 5, num=nb_of_x)
-        x1, x2 = np.meshgrid(x1s, x2s) # Generate grid
+        x1, x2 = np.meshgrid(x1s, x2s)  # Generate grid
         pdf = np.zeros((nb_of_x, nb_of_x))
         # Fill the cost matrix for each combination of weights
         for i in range(nb_of_x):
             for j in range(nb_of_x):
-                pdf[i,j] = multivariate_normal(
-                    np.matrix([[x1[i,j]], [x2[i,j]]]), 
+                pdf[i, j] = multivariate_normal(
+                    np.matrix([[x1[i, j]], [x2[i, j]]]),
                     d, mean, covariance)
         return x1, x2, pdf  # x1, x2, pdf(x1,x2)
 
-    def update(C = 0.8):
+    def update(C=0.8):
         plt.clf()
         ax1 = fig.add_subplot(121)
         ax2 = fig.add_subplot(122)
         bivariate_mean_weak = np.matrix([[0.], [0.]])  # Mean
         bivariate_covariance_weak = np.matrix([
-            [1., 0.], 
+            [1., 0.],
             [0., 1.]])  # Covariance
 
         bivariate_mean_strong = np.matrix([[0.], [1.]])  # Mean
         bivariate_covariance_strong = np.matrix([
-            [1., C], 
-            [C, 1.]]) 
+            [1., C],
+            [C, 1.]])
         # subplot
 
         d = 2  # number of dimensions
@@ -125,46 +127,48 @@ def multivariate_plot(multivariate_normal, nb_of_x=40):
         plt.suptitle('Bivariate normal distributions', fontsize=13, y=0.95)
         plt.show()
 
-    fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(9,5))
+    fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(9, 5))
     c_widget = FloatSlider(min=0.0, max=.99, step=0.01, continuous_update=False)
     widgets.interact(update, C=c_widget)
-    
+
+
 def condition_plot(nb_of_x=40):
     def univariate_normal(x, mean, variance):
         """pdf of the univariate normal distribution."""
-        return ((1. / np.sqrt(2 * np.pi * variance)) * 
-                np.exp(-(x - mean)**2 / (2 * variance)))
-    
+        return ((1. / np.sqrt(2 * np.pi * variance)) *
+                np.exp(-(x - mean) ** 2 / (2 * variance)))
+
     def multivariate_normal(x, d, mean, covariance):
         """pdf of the multivariate normal distribution."""
         x_m = x - mean
-        return (1. / (np.sqrt((2 * np.pi)**d * np.linalg.det(covariance))) * 
+        return (1. / (np.sqrt((2 * np.pi) ** d * np.linalg.det(covariance))) *
                 np.exp(-(np.linalg.solve(covariance, x_m).T.dot(x_m)) / 2))
 
     def generate_surface(mean, covariance, d, nb_of_x):
         """Helper function to generate density surface."""
-        nb_of_x = nb_of_x # grid size
+        nb_of_x = nb_of_x  # grid size
         x1s = np.linspace(-5, 5, num=nb_of_x)
         x2s = np.linspace(-5, 5, num=nb_of_x)
-        x1, x2 = np.meshgrid(x1s, x2s) # Generate grid
+        x1, x2 = np.meshgrid(x1s, x2s)  # Generate grid
         pdf = np.zeros((nb_of_x, nb_of_x))
         # Fill the cost matrix for each combination of weights
         for i in range(nb_of_x):
             for j in range(nb_of_x):
-                pdf[i,j] = multivariate_normal(
-                    np.matrix([[x1[i,j]], [x2[i,j]]]), 
+                pdf[i, j] = multivariate_normal(
+                    np.matrix([[x1[i, j]], [x2[i, j]]]),
                     d, mean, covariance)
         return x1, x2, pdf  # x1, x2, pdf(x1,x2)
-    def update(x=-1., y=1., C = 0.8):
+
+    def update(x=-1., y=1., C=0.8):
         plt.clf()
         d = 2  # dimensions
         mean = np.matrix([[0.], [1.]])
-        cov = np.matrix([[1, C], 
-                        [C, 1]])
+        cov = np.matrix([[1, C],
+                         [C, 1]])
 
         # Get the mean values from the vector
-        mean_x = mean[0,0]
-        mean_y = mean[1,0]
+        mean_x = mean[0, 0]
+        mean_y = mean[1, 0]
         # Get the blocks (single values in this case) from 
         #  the covariance matrix
         A = cov[0, 0]
@@ -173,13 +177,13 @@ def condition_plot(nb_of_x=40):
 
         # Calculate x|y
         y_condition = y  # To condition on y
-        mean_xgiveny = mean_x + (C * (1/B) * (y_condition - mean_y))
-        cov_xgiveny = A - C * (1/B) * C
+        mean_xgiveny = mean_x + (C * (1 / B) * (y_condition - mean_y))
+        cov_xgiveny = A - C * (1 / B) * C
 
         # Calculate y|x
         x_condition = x  # To condition on x
-        mean_ygivenx = mean_y + (C * (1/A) * (x_condition - mean_x))
-        cov_ygivenx = B - (C * (1/A) * C)
+        mean_ygivenx = mean_y + (C * (1 / A) * (x_condition - mean_x))
+        cov_ygivenx = B - (C * (1 / A) * C)
 
         # Plot the conditional distributions
 
@@ -207,7 +211,7 @@ def condition_plot(nb_of_x=40):
         yx = np.linspace(-5, 5, num=100)
         pyx = univariate_normal(yx, mean_ygivenx, cov_ygivenx)
         # Plot univariate distribution
-        ax2.plot(pyx, yx, 'b--', 
+        ax2.plot(pyx, yx, 'b--',
                  label=f'$p(y|x={x_condition:.1f})$')
         ax2.legend(loc=0)
         ax2.set_xlabel('density', fontsize=13)
@@ -218,7 +222,7 @@ def condition_plot(nb_of_x=40):
         xy = np.linspace(-5, 5, num=100)
         pxy = univariate_normal(xy, mean_xgiveny, cov_xgiveny)
         # Plot univariate distribution
-        ax3.plot(xy, pxy, 'r--', 
+        ax3.plot(xy, pxy, 'r--',
                  label=f'$p(x|y={y_condition:.1f})$')
         ax3.legend(loc=0)
         ax3.set_ylabel('density', fontsize=13)
@@ -233,12 +237,14 @@ def condition_plot(nb_of_x=40):
         cbar = fig.colorbar(con, cax=cax)
         cbar.ax.set_ylabel('density: $p(x, y)$', fontsize=13)
         plt.show()
+
     fig = plt.figure(figsize=(8, 8))
     x_widget = FloatSlider(min=-1.0, max=1.0, step=0.1, continuous_update=False)
     y_widget = FloatSlider(min=-1.0, max=1.0, step=0.1, continuous_update=False)
     c_widget = FloatSlider(min=0.0, max=.99, step=0.01, continuous_update=False)
-    widgets.interact(update,x=x_widget, y=y_widget, C=c_widget)
-    
+    widgets.interact(update, x=x_widget, y=y_widget, C=c_widget)
+
+
 def plot_gp(mu, cov, X, X_train=None, Y_train=None, samples=[]):
     X = X.ravel()
     mu = mu.ravel()
@@ -257,7 +263,8 @@ def plot_gp_2D(gx, gy, mu, X_train, Y_train, title, i):
     ax.plot_surface(gx, gy, mu.reshape(gx.shape), cmap=cm.coolwarm, linewidth=0, alpha=0.2, antialiased=False)
     ax.scatter(X_train[:, 0], X_train[:, 1], Y_train, c=Y_train, cmap=cm.coolwarm)
     ax.set_title(title)
-    
+
+
 def kernel(X1, X2, l=1.0, sigma_f=1.0):
     '''
     Isotropic squared exponential kernel. Computes
@@ -272,6 +279,7 @@ def kernel(X1, X2, l=1.0, sigma_f=1.0):
     '''
     sqdist = np.sum(X1 ** 2, 1).reshape(-1, 1) + np.sum(X2 ** 2, 1) - 2 * np.dot(X1, X2.T)
     return sigma_f ** 2 * np.exp(-0.5 / l ** 2 * sqdist)
+
 
 def posterior_predictive(X_s, X_train, Y_train, l=1.0, sigma_f=1.0, sigma_y=1e-8):
     '''
@@ -302,7 +310,8 @@ def posterior_predictive(X_s, X_train, Y_train, l=1.0, sigma_f=1.0, sigma_y=1e-8
 
     return mu_s, cov_s
 
-def nll_fn(X_train, Y_train, noise,kernel=kernel, naive=True):
+
+def nll_fn(X_train, Y_train, noise, kernel=kernel, naive=True):
     '''
     Returns a function that computes the negative log marginal
     likelihood for training data X_train and Y_train and given 
@@ -346,7 +355,7 @@ def nll_fn(X_train, Y_train, noise,kernel=kernel, naive=True):
     else:
         return nll_stable
 
-    
+
 def gaussian_process(x, f, noise, posterior_predictive=posterior_predictive, kernel=kernel):
     X_train = np.array(x).reshape(-1, 1)
     Y_train = f(X_train) + noise * np.random.randn(*X_train.shape)
@@ -367,11 +376,12 @@ def gaussian_process(x, f, noise, posterior_predictive=posterior_predictive, ker
     plt.close('all')
     mu_s, cov_s = posterior_predictive(X, X_train, Y_train, l=l_opt, sigma_f=sigma_f_opt, sigma_y=noise)
 
-    plt.plot(X,f(X),':', label='Ground Truth')
+    plt.plot(X, f(X), ':', label='Ground Truth')
     plot_gp(mu_s, cov_s, X, X_train=X_train, Y_train=Y_train)
     plt.legend()
     plt.show()
-    
+
+
 def gaussian_process_interactive(f, noise, kernal=ConstantKernel(1.0) * RBF(length_scale=1.0)):
     pass
     # Compute posterior predictive mean and covariance
@@ -386,36 +396,37 @@ def gaussian_process_interactive(f, noise, kernal=ConstantKernel(1.0) * RBF(leng
         x.append(event.xdata)
         y.append(event.ydata)
 
-        gpr = GaussianProcessRegressor(kernel=kernal, alpha=noise**2)
+        gpr = GaussianProcessRegressor(kernel=kernal, alpha=noise ** 2)
         gpr.fit(np.array(x).reshape([-1, 1]), np.array(y).reshape([-1, 1]))
         mu_s, cov_s = gpr.predict(X, return_cov=True)
 
-        plt.plot(X, f(X),':', label='Ground Truth')
+        plt.plot(X, f(X), ':', label='Ground Truth')
         plot_gp(mu_s, cov_s, X, X_train=x, Y_train=y)
         plt.xlim([min(X), max(X)])
-        plt.ylim([-1.5, 1.5])
+        plt.ylim([min(f(X))-0.5, max(f(X))+0.5])
         plt.legend()
 
-
-        
-    plt.plot(X, f(X),':', label='Ground Truth')
+    plt.plot(X, f(X), ':', label='Ground Truth')
     plt.legend()
     plt.xlim([min(X), max(X)])
-    plt.ylim([-1.5, 1.5])
+    plt.ylim([min(f(X))-0.5, max(f(X))+0.5])
     cid = fig.canvas.mpl_connect('button_press_event', onclick)
     plt.show()
     plt.draw()
-    
+
+
 from itertools import product
+
+
 class gprArray:
     def __init__(self, N, kernel, alpha):
-        self.gpr_array = [GaussianProcessRegressor(kernel=kernal, alpha=noise**2) for _ in range(N)]
-        
+        self.gpr_array = [GaussianProcessRegressor(kernel=kernal, alpha=noise ** 2) for _ in range(N)]
+
     def fit(self, x, y):
         y_split = [[] for _ in range(y.shape[1])]
         for i, j in product(range(y.shape[1]), range(y.shape[0])):
             y_split[i].append(y[j, i])
-        y_split = [np.array(y).reshape([-1,1]) for y in y_split]
+        y_split = [np.array(y).reshape([-1, 1]) for y in y_split]
         for i, gp in enumerate(self.gpr_array):
             gp.fit(x, y_split[i])
 
