@@ -40,9 +40,13 @@ def univariate_plot(univariate_normal):
         fig.subplots_adjust(bottom=0.15)
 
     fig, ax = plt.subplots(figsize=(8, 5))
-    ax.grid(True)
     widgets.interact(update, mu=(-3, 3, .1), sigma=(0.1, 2, .01))
 
+def multivariate_normal(x, d, mean, covariance):
+    """pdf of the multivariate normal distribution."""
+    x_m = x - mean
+    return (1. / (np.sqrt((2 * np.pi) ** d * np.linalg.det(covariance))) *
+            np.exp(-(np.linalg.solve(covariance, x_m).T.dot(x_m)) / 2))
 
 def generate_surface(mean, covariance, d, nb_of_x=40):
     """Helper function to generate density surface."""
@@ -78,13 +82,7 @@ def multivariate_plot(multivariate_normal, nb_of_x=40):
 
     def update(C=0.8):
         plt.clf()
-        ax1 = fig.add_subplot(121)
-        ax2 = fig.add_subplot(122)
-        bivariate_mean_weak = np.matrix([[0.], [0.]])  # Mean
-        bivariate_covariance_weak = np.matrix([
-            [1., 0.],
-            [0., 1.]])  # Covariance
-
+        ax2 = fig.add_subplot(111)
         bivariate_mean_strong = np.matrix([[0.], [1.]])  # Mean
         bivariate_covariance_strong = np.matrix([
             [1., C],
@@ -92,27 +90,13 @@ def multivariate_plot(multivariate_normal, nb_of_x=40):
         # subplot
 
         d = 2  # number of dimensions
-
-        # Plot of independent Normals
-        bivariate_mean = bivariate_mean_weak  # Mean
-        bivariate_covariance = bivariate_covariance_weak
-        x1, x2, p = generate_surface(
-            bivariate_mean, bivariate_covariance, d, nb_of_x)
-        # Plot bivariate distribution
-        con = ax1.contourf(x1, x2, p, 20, cmap=cm.YlGnBu)
-        ax1.set_xlabel('$x_1$', fontsize=13)
-        ax1.set_ylabel('$x_2$', fontsize=13)
-        ax1.axis([-2.5, 2.5, -2.5, 2.5])
-        ax1.set_aspect('equal')
-        ax1.set_title('Independent variables', fontsize=12)
-
         # Plot of correlated Normals
         bivariate_mean = bivariate_mean_strong  # Mean
         bivariate_covariance = bivariate_covariance_strong
         x1, x2, p = generate_surface(
             bivariate_mean, bivariate_covariance, d, nb_of_x)
         # Plot bivariate distribution
-        con = ax2.contourf(x1, x2, p, 20, cmap=cm.YlGnBu)
+        con = ax2.contourf(x1, x2, p, nb_of_x, cmap=cm.YlGnBu)
         ax2.set_xlabel('$x_1$', fontsize=13)
         ax2.set_ylabel('$x_2$', fontsize=13)
         ax2.axis([-2.5, 2.5, -1.5, 3.5])
@@ -127,7 +111,7 @@ def multivariate_plot(multivariate_normal, nb_of_x=40):
         plt.suptitle('Bivariate normal distributions', fontsize=13, y=0.95)
         plt.show()
 
-    fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(9, 5))
+    fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(9, 5))
     c_widget = FloatSlider(min=0.0, max=.99, step=0.01, continuous_update=False)
     widgets.interact(update, C=c_widget)
 
