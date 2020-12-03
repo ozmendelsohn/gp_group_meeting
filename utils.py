@@ -95,11 +95,12 @@ def multivariate_plot(multivariate_normal, nb_of_x=40):
         bivariate_covariance = bivariate_covariance_strong
         x1, x2, p = generate_surface(
             bivariate_mean, bivariate_covariance, d, nb_of_x)
-        # Plot bivariate distribution
+        # Plot bivariate distributiong
         con = ax2.contourf(x1, x2, p, nb_of_x, cmap=cm.YlGnBu)
         ax2.set_xlabel('$x_1$', fontsize=13)
         ax2.set_ylabel('$x_2$', fontsize=13)
         ax2.axis([-2.5, 2.5, -1.5, 3.5])
+        ax2.set_aspect('equal')
         ax2.set_aspect('equal')
         ax2.set_title(f'Correlated variables, C={C}', fontsize=12)
 

@@ -33,6 +33,7 @@ from sgdml.cli import _print_dataset_properties, _print_model_properties, _print
 from data_utils import from_traj
 from sgdml.predict import GDMLPredict
 from matplotlib.lines import Line2D
+import scipy as sp
 from sgdml.utils import io
 import ase
 import time
@@ -137,11 +138,95 @@ class GPRCalculator(Calculator):
         self.results = {'forces': f.reshape(-1, 3)}
 
 
-def x_to_d(x):
+def pbc_d(diffs, lat):
+    """
+    Clamp differences of vectors to super cell.
+
+    Parameters
+    ----------
+        diffs : :obj:`numpy.ndarray`
+            N x 3 matrix of N pairwise differences between vectors `u - v`
+        lat_and_inv : tuple of :obj:`numpy.ndarray`
+            Tuple of 3 x 3 matrix containing lattice vectors as columns and its inverse.
+        use_torch : boolean, optional
+            Enable, if the inputs are PyTorch objects.
+
+    Returns
+    -------
+        :obj:`numpy.ndarray`
+            N x 3 matrix clamped differences
+    """
+    lat_inv = np.linalg.inv(lat)
+
+    c = lat_inv.dot(diffs.T)
+    diffs -= lat.dot(np.rint(c)).T
+
+    return diffs
+
+
+def dist(r, lat=None): # TODO: update return (no squareform anymore)
+    """
+    Compute pairwise Euclidean distance matrix between all atoms.
+
+    Parameters
+    ----------
+        r : :obj:`numpy.ndarray`
+            Array of size 3N containing the Cartesian coordinates of
+            each atom.
+        lat_and_inv : tuple of :obj:`numpy.ndarray`, optional
+            Tuple of 3x3 matrix containing lattice vectors as columns and its inverse.
+
+    Returns
+    -------
+        :obj:`numpy.ndarray`
+            Array of size N x N containing all pairwise distances between atoms.
+    """
+
+    n_atoms = r.shape[0]
+
+    if lat is None:
+        pdist = sp.spatial.distance.pdist(r, 'euclidean')
+    else:
+        pdist = sp.spatial.distance.pdist(
+            r, lambda u, v: np.linalg.norm(pbc_d(u - v, lat))
+        )
+
+    tril_idxs = np.tril_indices(n_atoms, k=-1)
+    return sp.spatial.distance.squareform(pdist, checks=False)[tril_idxs]
+
+def dist_mat(r, lat=None): # TODO: update return (no squareform anymore)
+    """
+    Compute pairwise Euclidean distance matrix between all atoms.
+
+    Parameters
+    ----------
+        r : :obj:`numpy.ndarray`
+            Array of size 3N containing the Cartesian coordinates of
+            each atom.
+        lat_and_inv : tuple of :obj:`numpy.ndarray`, optional
+            Tuple of 3x3 matrix containing lattice vectors as columns and its inverse.
+
+    Returns
+    -------
+        :obj:`numpy.ndarray`
+            Array of size N x N containing all pairwise distances between atoms.
+    """
+
+    if lat is None:
+        pdist = sp.spatial.distance.pdist(r, 'euclidean')
+    else:
+        pdist = sp.spatial.distance.pdist(
+            r, lambda u, v: np.linalg.norm(pbc_d(u - v, lat))
+        )
+
+    return sp.spatial.distance.squareform(pdist, checks=False)
+
+
+def x_to_d(x, lat=None):
     d = []
     for xi in x:
         xi = xi.reshape([-1, 3])
-        d.append(pdist(xi))
+        d.append(dist(xi, lat))
     return np.stack(d, axis=0)
 
 
@@ -232,7 +317,7 @@ def all_script(dataset_path, n_train, n_valid, n_test=None,
 def plot_gdml(model_path, traj, start=1, every=1):
     gdml = GDMLPredict(np.load(model_path, allow_pickle=True))
     (x, y), (x_test, y_test) = md_dataset_split(traj, start, every)
-
+    print(x.shape)
     _, y_hat_train = gdml.predict(x)
     y_hat_train_norm = np.linalg.norm(y_hat_train, axis=1)
     y_train_norm = np.linalg.norm(y, axis=1)
