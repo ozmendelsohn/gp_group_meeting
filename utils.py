@@ -230,6 +230,23 @@ def condition_plot(nb_of_x=40):
     widgets.interact(update, x=x_widget, y=y_widget, C=c_widget)
 
 
+def plot_noise_sin(n=50, noise=0.1, plot_line=False, label=False):
+    x = np.linspace(0,np.pi*2, n)
+    y = np.sin(x) + np.random.normal(loc=0.0, scale=noise, size=n)
+    if plot_line:
+        xi = np.linspace(0,np.pi*2, 10*n)
+        plt.plot(xi, np.sin(xi), color='C4', label=r'$sin(x)$')
+    plt.scatter(x, y, label=label)
+    if label:
+        plt.legend()
+    plt.show()
+    return x
+
+def heapmap_kernal(x,  kernel, noise=0.1):
+    K = kernel(x, x) + (noise**2)*np.eye(len(x))
+    plt.imshow(K, cmap='Blues')
+    plt.show()
+
 def plot_gp(mu, cov, X, X_train=None, Y_train=None, samples=[]):
     X = X.ravel()
     mu = mu.ravel()
