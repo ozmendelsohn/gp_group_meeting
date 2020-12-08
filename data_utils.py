@@ -3,12 +3,7 @@ from __future__ import print_function
 import argparse
 import os
 import sys
-
-try:
-    from ase.io import read
-except ImportError:
-    raise ImportError('Optional ASE dependency not found! Please run \'pip install sgdml[ase]\' to install it.')
-
+from ase.io import read
 import numpy as np
 
 from sgdml import __version__
@@ -17,11 +12,12 @@ from sgdml.utils import io, ui
 if sys.version[0] == '3':
     raw_input = input
 
+
 def from_traj(dataset, overwrite=True, custom_name='', theory='unknown', r_unit='Ang', e_unit='eV'):
-# 'Please provide a description of the length unit used in your input file, e.g. \'Ang\' or \'au\': ')
-# 'Note: This string will be stored in the dataset file and passed on to models files for later reference.')
-# 'Please provide a description of the energy unit used in your input file, e.g. \'kcal/mol\' or \'eV\': ')
-# 'Note: This string will be stored in the dataset file and passed on to models files for later reference.')
+    # 'Please provide a description of the length unit used in your input file, e.g. \'Ang\' or \'au\': ')
+    # 'Note: This string will be stored in the dataset file and passed on to models files for later reference.')
+    # 'Please provide a description of the energy unit used in your input file, e.g. \'kcal/mol\' or \'eV\': ')
+    # 'Note: This string will be stored in the dataset file and passed on to models files for later reference.')
     name = os.path.splitext(os.path.basename(dataset))[0]
     dataset_file_name = name + '.npz'
 
@@ -41,7 +37,6 @@ def from_traj(dataset, overwrite=True, custom_name='', theory='unknown', r_unit=
     lattice, R, z, E, F = None, None, None, None, None
 
     calc = mols[0].get_calculator()
-
 
     print("\rNumber geometries found: {:,}\n".format(len(mols)))
 
@@ -67,7 +62,7 @@ def from_traj(dataset, overwrite=True, custom_name='', theory='unknown', r_unit=
         )
 
     lattice = np.array(mols[0].get_cell())
-    if not np.any(lattice): # all zeros
+    if not np.any(lattice):  # all zeros
         lattice = None
 
     R = np.array([mol.get_positions() for mol in mols])
@@ -79,16 +74,13 @@ def from_traj(dataset, overwrite=True, custom_name='', theory='unknown', r_unit=
     if custom_name != '':
         name = custom_name
 
-
     # Base variables contained in every model file.
     base_vars = {'type': 'd', 'code_version': __version__, 'name': name, 'theory': theory, 'R': R, 'z': z, 'F': F,
                  'F_min': np.min(F.ravel()), 'F_max': np.max(F.ravel()), 'F_mean': np.mean(F.ravel()),
                  'F_var': np.var(F.ravel())}
 
-
     if r_unit != '':
         base_vars['r_unit'] = r_unit
-
 
     if e_unit != '':
         base_vars['e_unit'] = e_unit
