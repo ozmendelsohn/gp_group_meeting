@@ -1,46 +1,14 @@
-from ase.lattice.cubic import FaceCenteredCubic
-from ase.md.langevin import Langevin
-from ase.io.trajectory import Trajectory
-from ase import io
-from ase.md.velocitydistribution import MaxwellBoltzmannDistribution
 from ase import units
-from ase.build import molecule
-from ase.visualize import ngl
-from ase.io.trajectory import Trajectory
-from ase import Atom, Atoms
 from scipy.spatial.distance import pdist
-from matplotlib import use
-from sklearn.gaussian_process import GaussianProcessRegressor
-from sklearn.gaussian_process.kernels import ConstantKernel, RBF
-from numpy.linalg import cholesky, det, lstsq
-from scipy.optimize import minimize
-from numpy.linalg import cholesky, det, lstsq
-from numpy.linalg import inv
+from numpy.linalg import cholesky
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib import cm
-from mpl_toolkits.mplot3d import Axes3D
-import sys
-import matplotlib
-from matplotlib import cm  # Colormaps
-import matplotlib.gridspec as gridspec
-from mpl_toolkits.axes_grid1 import make_axes_locatable
-import ipywidgets as widgets
-from ipywidgets import FloatSlider
-from ase.calculators.calculator import Calculator
-from ase.units import kcal, mol
-from sgdml.cli import _print_dataset_properties, _print_model_properties, _print_task_properties
-from data_utils import from_traj
 from sgdml.predict import GDMLPredict
 from matplotlib.lines import Line2D
 import scipy as sp
 from itertools import product
 from tqdm.notebook import tqdm
-from sgdml.utils import io
-import ase
 import time
-from itertools import product
-from tqdm.notebook import tqdm
 
 
 def movingaverage(interval, theta=0.01):
@@ -83,11 +51,11 @@ def plot_gpr(gpr, x, y, x_test, y_test):
     axis[0].legend(custom_lines, ['training', 'predicted on train', 'predicted', 'ground truth'])
 
     x1 = np.arange(len(y_hat_train_norm))
-    axis[1].plot(x1, 100*(y_train_norm-y_hat_train_norm)/y_train_norm, '.', alpha=0.1, color=col[0])
-    axis[1].plot(x1, movingaverage(100*(y_train_norm-y_hat_train_norm)/y_train_norm), color=col[0])
+    axis[1].plot(x1, 100 * (y_train_norm - y_hat_train_norm) / y_train_norm, '.', alpha=0.1, color=col[0])
+    axis[1].plot(x1, movingaverage(100 * (y_train_norm - y_hat_train_norm) / y_train_norm), color=col[0])
     x2 = np.arange(len(y_hat_norm)) + len(y_hat_train_norm)
-    axis[1].plot(x2, 100*(y_test_norm-y_hat_norm)/y_test_norm, '.', alpha=0.1, color=col[1])
-    axis[1].plot(x2, movingaverage(100*(y_test_norm-y_hat_norm)/y_test_norm), color=col[1])
+    axis[1].plot(x2, 100 * (y_test_norm - y_hat_norm) / y_test_norm, '.', alpha=0.1, color=col[1])
+    axis[1].plot(x2, movingaverage(100 * (y_test_norm - y_hat_norm) / y_test_norm), color=col[1])
     custom_lines = [Line2D([0], [0], color=col[0], lw=4),
                     Line2D([0], [0], color=col[1], lw=4)]
     axis[1].legend(custom_lines, ['difference on train', 'difference on test'])
@@ -95,23 +63,28 @@ def plot_gpr(gpr, x, y, x_test, y_test):
     plt.show()
 
 
-def printenergy(atoms):  # store a reference to atoms in the definition.
+def printenergy(atoms, steps, interval):  # store a reference to atoms in the definition.
     t0 = time.time()
-
-    def ptint_func(a=atoms):
+    pbar = tqdm(total=steps)
+    def ptint_func(a=atoms, intvl=interval):
         """Function to print the potential, kinetic and total energy."""
         epot = a.get_potential_energy() / len(a)
         ekin = a.get_kinetic_energy() / len(a)
-        print('Energy per atom: Epot = %.3feV  Ekin = %.3feV (T=%3.0fK)  '
-              'Etot = %.3feV, time elapsed: %.1f' % (
-                  epot, ekin, ekin / (1.5 * units.kB), epot + ekin, time.time() - t0))
+        text = 'Energy per atom: Epot = %.3feV  Ekin = %.3feV (T=%3.0fK) Etot = %.3feV, time elapsed: %.1f' \
+               % (epot, ekin, ekin / (1.5 * units.kB), epot + ekin, time.time() - t0)
+        value_dict =dict(Epot=epot, Ekin=ekin, T=ekin / (1.5 * units.kB), Etot=epot + ekin)
+        pbar.update(intvl)
+        pbar.set_postfix(value_dict)
 
     return ptint_func
 
+
 def printenergy_slim(steps, interval):  # store a reference to atoms in the definition.
     pbar = tqdm(total=steps)
+
     def ptint_func(intvl=interval):
         pbar.update(intvl)
+
     return ptint_func
 
 
@@ -373,6 +346,8 @@ def all_script(dataset_path, n_train, n_valid, n_test=None,
     script_name = 'run_me.sh'
     with open(script_name, 'w') as f:
         f.write('#!/usr/bin/sh\n')
+        f.write('source /home/oz/.bashrc\n')
+        f.write('conda activate //home/oz/anaconda3/envs/sgdml/\n')
         f.write(execute_line)
     return script_name
 
@@ -411,11 +386,11 @@ def plot_gdml(model_path, traj, start=1, every=1):
     axis[0].legend(custom_lines, ['training', 'predicted on train', 'predicted', 'ground truth'])
 
     x1 = np.arange(len(y_hat_train_norm))
-    axis[1].plot(x1, 100*(y_train_norm-y_hat_train_norm)/y_train_norm, '.', alpha=0.1, color=col[0])
-    axis[1].plot(x1, movingaverage(100*(y_train_norm-y_hat_train_norm)/y_train_norm), color=col[0])
+    axis[1].plot(x1, 100 * (y_train_norm - y_hat_train_norm) / y_train_norm, '.', alpha=0.1, color=col[0])
+    axis[1].plot(x1, movingaverage(100 * (y_train_norm - y_hat_train_norm) / y_train_norm), color=col[0])
     x2 = np.arange(len(y_hat_norm)) + len(y_hat_train_norm)
-    axis[1].plot(x2, 100*(y_test_norm-y_hat_norm)/y_test_norm, '.', alpha=0.1, color=col[1])
-    axis[1].plot(x2, movingaverage(100*(y_test_norm-y_hat_norm)/y_test_norm), color=col[1])
+    axis[1].plot(x2, 100 * (y_test_norm - y_hat_norm) / y_test_norm, '.', alpha=0.1, color=col[1])
+    axis[1].plot(x2, movingaverage(100 * (y_test_norm - y_hat_norm) / y_test_norm), color=col[1])
     custom_lines = [Line2D([0], [0], color=col[0], lw=4),
                     Line2D([0], [0], color=col[1], lw=4)]
     axis[1].legend(custom_lines, ['difference on train', 'difference on test'])
