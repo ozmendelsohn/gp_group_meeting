@@ -1,6 +1,4 @@
-conda install nglview -c conda-forge
-jupyter-nbextension enable nglview --py --sys-prefix
 jupyter contrib nbextension install --user
 jupyter nbextension enable --py widgetsnbextension
 jupyter labextension install @jupyter-widgets/jupyterlab-manager@0.38 --minimize=False
-conda install -c conda-forge kimpy openkim-models -y
+jupyter-nbextension enable nglview --py --sys-prefix
