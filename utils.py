@@ -31,7 +31,7 @@ def univariate_plot(univariate_normal):
         plt.plot(x, univariate_normal(x, mu, sigma),
                  label='$\mathcal{N}(' + str(mu) + ', ' + str(sigma) + ')$', color='C0')
 
-        plt.xlabel('$x$', fontsize=13)
+        plt.xlabel('$y$', fontsize=13)
         plt.ylabel('density: $p(x)$', fontsize=13)
         plt.title('Univariate normal distributions')
         plt.ylim([0, 1])
@@ -97,19 +97,19 @@ def multivariate_plot(multivariate_normal, nb_of_x=40):
             bivariate_mean, bivariate_covariance, d, nb_of_x)
         # Plot bivariate distributiong
         con = ax2.contourf(x1, x2, p, nb_of_x, cmap=cm.YlGnBu)
-        ax2.set_xlabel('$x_1$', fontsize=13)
-        ax2.set_ylabel('$x_2$', fontsize=13)
+        ax2.set_xlabel('$y_1$', fontsize=13)
+        ax2.set_ylabel('$y_2$', fontsize=13)
         ax2.axis([-2.5, 2.5, -1.5, 3.5])
         ax2.set_aspect('equal')
         ax2.set_aspect('equal')
-        ax2.set_title(f'Correlated variables, C={C}', fontsize=12)
+        ax2.set_title(fr'Correlated variables, C={C}, $\mu_1$={0} $\mu_2$={1}', fontsize=11)
 
         # Add colorbar and title
         fig.subplots_adjust(right=0.84)
         cbar_ax = fig.add_axes([0.85, 0.15, 0.02, 0.7])
         cbar = fig.colorbar(con, cax=cbar_ax)
         cbar.ax.set_ylabel('$p(x_1, x_2)$', fontsize=13)
-        plt.suptitle('Bivariate normal distributions', fontsize=13, y=0.95)
+        plt.suptitle('Bivariate normal distributions', fontsize=13, y=0.98)
         plt.show()
 
     fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(9, 5))
@@ -144,7 +144,7 @@ def condition_plot(nb_of_x=40):
                     d, mean, covariance)
         return x1, x2, pdf  # x1, x2, pdf(x1,x2)
 
-    def update(x=-1., y=1., C=0.8):
+    def update(y1=-1., y2=1., C=0.8):
         plt.clf()
         d = 2  # dimensions
         mean = np.matrix([[0.], [1.]])
@@ -161,12 +161,12 @@ def condition_plot(nb_of_x=40):
         C = cov[0, 1]  # = C transpose in this case
 
         # Calculate x|y
-        y_condition = y  # To condition on y
+        y_condition = y2  # To condition on y
         mean_xgiveny = mean_x + (C * (1 / B) * (y_condition - mean_y))
         cov_xgiveny = A - C * (1 / B) * C
 
         # Calculate y|x
-        x_condition = x  # To condition on x
+        x_condition = y1  # To condition on x
         mean_ygivenx = mean_y + (C * (1 / A) * (x_condition - mean_x))
         cov_ygivenx = B - (C * (1 / A) * C)
 
@@ -186,8 +186,8 @@ def condition_plot(nb_of_x=40):
         ax1.plot([-2.5, 2.5], [y_condition, y_condition], 'r--')
         # x=-1. that is conditioned upon
         ax1.plot([x_condition, x_condition], [-1.5, 3.5], 'b--')
-        ax1.set_xlabel('$x$', fontsize=13)
-        ax1.set_ylabel('$y$', fontsize=13)
+        ax1.set_xlabel('$y_1$', fontsize=13)
+        ax1.set_ylabel('$y_2$', fontsize=13)
         ax1.yaxis.set_label_position('right')
         ax1.axis([-2.5, 2.5, -1.5, 3.5])
 
@@ -197,7 +197,7 @@ def condition_plot(nb_of_x=40):
         pyx = univariate_normal(yx, mean_ygivenx, cov_ygivenx)
         # Plot univariate distribution
         ax2.plot(pyx, yx, 'b--',
-                 label=f'$p(y|x={x_condition:.1f})$')
+                 label=f'$p(y_2|y_1={x_condition:.1f})$')
         ax2.legend(loc=0)
         ax2.set_xlabel('density', fontsize=13)
         ax2.set_ylim(-1.5, 3.5)
@@ -208,7 +208,7 @@ def condition_plot(nb_of_x=40):
         pxy = univariate_normal(xy, mean_xgiveny, cov_xgiveny)
         # Plot univariate distribution
         ax3.plot(xy, pxy, 'r--',
-                 label=f'$p(x|y={y_condition:.1f})$')
+                 label=f'$p(y_1|y_2={y_condition:.1f})$')
         ax3.legend(loc=0)
         ax3.set_ylabel('density', fontsize=13)
         ax3.yaxis.set_label_position('right')
@@ -227,7 +227,7 @@ def condition_plot(nb_of_x=40):
     x_widget = FloatSlider(min=-1.0, max=1.0, step=0.1, continuous_update=False)
     y_widget = FloatSlider(min=-1.0, max=1.0, step=0.1, continuous_update=False)
     c_widget = FloatSlider(min=0.0, max=.99, step=0.01, continuous_update=False)
-    widgets.interact(update, x=x_widget, y=y_widget, C=c_widget)
+    widgets.interact(update, y1=x_widget, y2=y_widget, C=c_widget)
 
 
 def plot_noise_sin(n=50, noise=0.1, plot_line=False, label=False):
