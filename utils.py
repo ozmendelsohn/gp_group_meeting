@@ -22,31 +22,37 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def univariate_plot(univariate_normal):
+def univariate_plot(univariate_normal, normal=True, xlim=[-5, 5]):
     def update(mu=0.0, sigma=1):
         """Remove old lines from plot and plot new one"""
         [l.remove() for l in ax.lines]
-
+        if normal:
+            label = '$\mathcal{N}(' + str(mu) + ', ' + str(sigma) + ')$'
+        else:
+            label = ''
         x = np.linspace(-5, 5, num=150)
         plt.plot(x, univariate_normal(x, mu, sigma),
-                 label='$\mathcal{N}(' + str(mu) + ', ' + str(sigma) + ')$', color='C0')
+                 label=label, color='C0')
 
         plt.xlabel('$y$', fontsize=13)
         plt.ylabel('density: $p(x)$', fontsize=13)
-        plt.title('Univariate normal distributions')
+        if normal:
+            plt.title('Univariate normal distributions')
         plt.ylim([0, 1])
-        plt.xlim([-5, 5])
+        plt.xlim(xlim)
         plt.legend(loc=1)
         fig.subplots_adjust(bottom=0.15)
 
     fig, ax = plt.subplots(figsize=(8, 5))
     widgets.interact(update, mu=(-3, 3, .1), sigma=(0.1, 2, .01))
 
+
 def multivariate_normal(x, d, mean, covariance):
     """pdf of the multivariate normal distribution."""
     x_m = x - mean
     return (1. / (np.sqrt((2 * np.pi) ** d * np.linalg.det(covariance))) *
             np.exp(-(np.linalg.solve(covariance, x_m).T.dot(x_m)) / 2))
+
 
 def generate_surface(mean, covariance, d, nb_of_x=40):
     """Helper function to generate density surface."""
@@ -231,10 +237,10 @@ def condition_plot(nb_of_x=40):
 
 
 def plot_noise_sin(n=50, noise=0.1, plot_line=False, label=False):
-    x = np.linspace(0,np.pi*2, n)
+    x = np.linspace(0, np.pi * 2, n)
     y = np.sin(x) + np.random.normal(loc=0.0, scale=noise, size=n)
     if plot_line:
-        xi = np.linspace(0,np.pi*2, 10*n)
+        xi = np.linspace(0, np.pi * 2, 10 * n)
         plt.plot(xi, np.sin(xi), color='C4', label=r'$sin(x)$')
     plt.scatter(x, y, label=label)
     if label:
@@ -242,10 +248,12 @@ def plot_noise_sin(n=50, noise=0.1, plot_line=False, label=False):
     plt.show()
     return x
 
-def heapmap_kernal(x,  kernel, noise=0.1):
-    K = kernel(x, x) + (noise**2)*np.eye(len(x))
+
+def heapmap_kernal(x, kernel, noise=0.1):
+    K = kernel(x, x) + (noise ** 2) * np.eye(len(x))
     plt.imshow(K, cmap='Blues')
     plt.show()
+
 
 def plot_gp(mu, cov, X, X_train=None, Y_train=None, samples=[]):
     X = X.ravel()
@@ -405,13 +413,13 @@ def gaussian_process_interactive(f, noise, kernal=ConstantKernel(1.0) * RBF(leng
         plt.plot(X, f(X), ':', label='Ground Truth')
         plot_gp(mu_s, cov_s, X, X_train=x, Y_train=y)
         plt.xlim([min(X), max(X)])
-        plt.ylim([min(f(X))-0.5, max(f(X))+0.5])
+        plt.ylim([min(f(X)) - 0.5, max(f(X)) + 0.5])
         plt.legend()
 
     plt.plot(X, f(X), ':', label='Ground Truth')
     plt.legend()
     plt.xlim([min(X), max(X)])
-    plt.ylim([min(f(X))-0.5, max(f(X))+0.5])
+    plt.ylim([min(f(X)) - 0.5, max(f(X)) + 0.5])
     cid = fig.canvas.mpl_connect('button_press_event', onclick)
     plt.show()
     plt.draw()
