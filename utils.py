@@ -30,8 +30,8 @@ def univariate_plot(univariate_normal, normal=True, xlim=[-5, 5]):
             label = '$\mathcal{N}(' + str(mu) + ', ' + str(sigma) + ')$'
         else:
             label = ''
-        x = np.linspace(-5, 5, num=150)
-        plt.plot(x, univariate_normal(x, mu, sigma),
+        x = np.linspace(-5, 5, num=1500)
+        plt.plot(x, univariate_normal(x, mu, sigma**2),
                  label=label, color='C0')
 
         plt.xlabel('$y$', fontsize=13)
@@ -236,7 +236,7 @@ def condition_plot(nb_of_x=40):
     widgets.interact(update, y1=x_widget, y2=y_widget, C=c_widget)
 
 
-def plot_noise_sin(n=50, noise=0.1, plot_line=False, label=False):
+def plot_noise_sin(n=50, noise=0.05, plot_line=False, label=False):
     x = np.linspace(0, np.pi * 2, n)
     y = np.sin(x) + np.random.normal(loc=0.0, scale=noise, size=n)
     if plot_line:
@@ -245,6 +245,8 @@ def plot_noise_sin(n=50, noise=0.1, plot_line=False, label=False):
     plt.scatter(x, y, label=label)
     if label:
         plt.legend()
+    plt.xlabel('x')
+    plt.ylabel('y')
     plt.show()
     return x
 

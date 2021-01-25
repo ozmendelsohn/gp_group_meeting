@@ -65,6 +65,7 @@ def plot_gpr(gpr, x, y, x_test, y_test):
 
 def printenergy(atoms, steps, interval):  # store a reference to atoms in the definition.
     t0 = time.time()
+    # print(steps)
     pbar = tqdm(total=steps)
     def ptint_func(a=atoms, intvl=interval):
         """Function to print the potential, kinetic and total energy."""
@@ -91,7 +92,7 @@ def printenergy_slim(steps, interval):  # store a reference to atoms in the defi
 def md_dataset_split(traj, start=1, every=1):
     y, x = [], []
     y_test, x_test = [], []
-    for i, config in enumerate(traj):
+    for i, config in tqdm(enumerate(traj), total=len(traj)):
         if i % every == 0 and i >= start - 1:
             if i <= (len(traj) + start) / 2:
                 y.append(config.get_forces().reshape([1, -1]))
