@@ -430,6 +430,34 @@ def gaussian_process_interactive(f, noise, kernal=ConstantKernel(1.0) * RBF(leng
 from itertools import product
 
 
+def run_gaussian_process(f, noise_level, kernel_choice):
+    """
+    Run Gaussian Process with given noise level and kernel choice.
+
+    Parameters:
+    - f: Function to model.
+    - noise_level: Noise level for the Gaussian Process.
+    - kernel_choice: Choice of kernel ('RBF' or 'Matern').
+
+    Returns:
+    - Tuple of (X, mu_s, cov_s) for plotting.
+    """
+    if kernel_choice == "RBF":
+        kernel = ConstantKernel(1.0) * RBF(length_scale=1.0)
+    elif kernel_choice == "Matern":
+        kernel = ConstantKernel(1.0) * Matern(length_scale=1.0, nu=2.5)
+    else:
+        raise ValueError("Unsupported kernel choice")
+
+    X = np.arange(-5, 5, 0.01).reshape(-1, 1)
+    gpr = GaussianProcessRegressor(kernel=kernel, alpha=noise_level ** 2)
+    x_train = np.linspace(-5, 5, 10).reshape(-1, 1)
+    y_train = f(x_train) + noise_level * np.random.randn(*x_train.shape)
+    gpr.fit(x_train, y_train)
+    mu_s, cov_s = gpr.predict(X, return_cov=True)
+    return X, mu_s, cov_s
+
+
 class gprArray:
     def __init__(self, N, kernel, alpha):
         self.gpr_array = [GaussianProcessRegressor(kernel=kernal, alpha=noise ** 2) for _ in range(N)]

@@ -10,3 +10,4 @@ sgdml
 ase
 tqdm
 jupyter_contrib_nbextensions
+streamlit
